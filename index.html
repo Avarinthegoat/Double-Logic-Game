@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Double Logic Studio | Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="dark-theme">
+    <nav class="navbar">
+        <div class="nav-logo">
+            <img src="image.png" alt="Logo">
+            <span>Double Logic</span>
+        </div>
+        <div class="nav-links" id="navLinks">
+            <a href="#" onclick="showPage('portfolio')">Portfolio</a>
+            <a href="#" onclick="showPage('hiring')">Join Us</a>
+            <a href="#" id="devTab" class="hidden" onclick="showPage('dashboard')">Dev Portal</a>
+            <button id="authBtn" onclick="openAuth()">Login</button>
+        </div>
+    </nav>
+
+    <main id="app-container" class="fade-in">
+        </main>
+
+    <div id="authModal" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="modalTitle">Sign Up</h2>
+            <input type="text" id="username" placeholder="Username">
+            <input type="password" id="password" placeholder="Password">
+            <button class="primary-btn" onclick="handleAuth()">Continue</button>
+            <p onclick="toggleAuthMode()" id="authSubtext">Already have an account? Login</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Double Logic Studio | Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="dark-theme">
+    <nav class="navbar">
+        <div class="nav-logo">
+            <img src="image.png" alt="Logo">
+            <span>Double Logic</span>
+        </div>
+        <div class="nav-links" id="navLinks">
+            <a href="#" onclick="showPage('portfolio')">Portfolio</a>
+            <a href="#" onclick="showPage('hiring')">Join Us</a>
+            <a href="#" id="devTab" class="hidden" onclick="showPage('dashboard')">Dev Portal</a>
+            <button id="authBtn" onclick="openAuth()">Login</button>
+        </div>
+    </nav>
+
+    <main id="app-container" class="fade-in">
+        </main>
+
+    <div id="authModal" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="modalTitle">Sign Up</h2>
+            <input type="text" id="username" placeholder="Username">
+            <input type="password" id="password" placeholder="Password">
+            <button class="primary-btn" onclick="handleAuth()">Continue</button>
+            <p onclick="toggleAuthMode()" id="authSubtext">Already have an account? Login</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
