@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Double Logic Studio | Avarin</title>
+    <style>
+        /* --- STYLE.CSS SECTION --- */
+        :root {
+            --bg: #050505;
+            --panel: #111111;
+            --accent: #ffffff;
+            --secondary: #888888;
+            --border: rgba(255, 255, 255, 0.1);
+            --glow: 0 0 20px rgba(255, 255, 255, 0.05);
+            --font: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--accent);
+            font-family: var(--font);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- AUTH WALL --- */
+        #auth-wall {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.8s cubic-bezier(0.87, 0, 0.13, 1);
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: var(--glow);
+            animation: scaleIn 0.5s ease;
+        }
+
+        .auth-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0;
+            background: #1a1a1a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus { border-color: var(--accent); }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            margin-top: 15px;
+            background: var(--accent);
+            color: black;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-primary:hover { transform: translateY(-2px); opacity: 0.9; }
+
+        /* --- MAIN APP LAYOUT --- */
+        #main-app {
+            opacity: 0;
+            transition: 1s ease;
+            padding-top: 100px;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(5,5,5,0.8);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border);
+            z-index: 100;
+        }
+
+        .studio-logo-small {
+            height: 40px;
+            border-radius: 8px;
+            vertical-align: middle;
+        }
+
+        /* --- SECTION STYLING --- */
+        section {
+            max-width: 1100px;
+            margin: 0 auto 100px auto;
+            padding: 0 20px;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            margin-bottom: 40px;
+            letter-spacing: -1px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
+        }
+
+        .project-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 30px;
+            transition: 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(255,255,255,0.3);
+            box-shadow: var(--glow);
+        }
+
+        .badge {
+            font-size: 10px;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.1);
+            color: var(--secondary);
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        /* --- DEVELOPER DASHBOARD --- */
+        .dev-only {
+            background: linear-gradient(145deg, #111, #1a1a1a);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 50px;
+            border-radius: 30px;
+            margin-bottom: 100px;
+        }
+
+        .hidden { display: none !important; }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="auth-wall">
+        <div class="auth-card">
+            <img src="image.png" alt="Logo" class="auth-logo">
+            <h1 id="auth-title">Welcome</h1>
+            <p style="color: #666; margin-bottom: 20px;">Enter your credentials to enter the studio</p>
+            <input type="text" id="user-input" placeholder="Username">
+            <input type="password" id="pass-input" placeholder="Password">
+            <button class="btn-primary" onclick="attemptLogin()">Enter Studio</button>
+            <p id="error-msg" style="color: #ff4444; margin-top: 15px; font-size: 12px;"></p>
+        </div>
+    </div>
+
+    <div id="main-app">
+        <header class="header">
+            <div>
+                <img src="image.png" alt="Logo" class="studio-logo-small">
+                <span style="font-weight: 700; margin-left: 10px;">DOUBLE LOGIC</span>
+            </div>
+            <div id="user-display" style="font-size: 14px; color: var(--secondary);"></div>
+            <button onclick="logout()" style="background:none; border:none; color:white; cursor:pointer;">Logout</button>
+        </header>
+
+        <section id="dev-portal" class="dev-only hidden">
+            <h2 class="section-title">Developer Dashboard</h2>
+            <div class="grid">
+                <div class="card" style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px;">
+                    <h4>Active Tasks</h4>
+                    <ul id="task-list" style="margin-top:15px; list-style:none; color: var(--secondary);">
+                        <li>• Finalize Engine UI</li>
+                        <li>• Database handshake optimization</li>
+                    </ul>
+                </div>
+                <div class="card" style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px;">
+                    <h4>Recent Applicants</h4>
+                    <p style="font-size: 13px; margin-top: 10px;">No new applications today.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="portfolio">
+            <h2 class="section-title">Studio Portfolio</h2>
+            <div class="grid" id="project-grid">
+                </div>
+        </section>
+
+        <section id="hiring">
+            <h2 class="section-title">Join the Team</h2>
+            <div class="project-card" style="max-width: 600px; margin: 0 auto;">
+                <input type="text" placeholder="Discord Username">
+                <input type="text" placeholder="Your Specialty (GFX/Scripting/Modeling)">
+                <textarea style="width:100%; height:100px; background:#1a1a1a; border:1px solid var(--border); border-radius:8px; padding:10px; color:white; margin-bottom:10px;" placeholder="Portfolio Link or Summary"></textarea>
+                <button class="btn-primary" onclick="alert('Application Sent!')">Submit Application</button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        /* --- SCRIPT.JS SECTION --- */
+        const userKey = "doubleLogic_user";
+        const projects = [
+            { name: "Eclipse Engine", status: "Active", desc: "Proprietary Roblox framework for high-fidelity physics." },
+            { name: "Nexora Dash", status: "Completed", desc: "Unified Discord management system for gaming communities." },
+            { name: "Shadow Realm", status: "In Development", desc: "Atmospheric 3D experience featuring custom GFX shaders." }
+        ];
+
+        // Check for existing session on load
+        window.onload = () => {
+            const savedUser = localStorage.getItem(userKey);
+            if (savedUser) {
+                loginSuccess(savedUser);
+            }
+        };
+
+        function attemptLogin() {
+            const user = document.getElementById('user-input').value;
+            const pass = document.getElementById('pass-input').value;
+
+            if (user.length < 3) {
+                document.getElementById('error-msg').innerText = "Username too short.";
+                return;
+            }
+
+            // Logic: Store user and redirect
+            localStorage.setItem(userKey, user);
+            loginSuccess(user);
+        }
+
+        function loginSuccess(username) {
+            // Hide Wall
+            document.getElementById('auth-wall').style.transform = "translateY(-100%)";
+            document.getElementById('main-app').style.opacity = "1";
+            document.getElementById('user-display').innerText = `Logged in as: ${username}`;
+
+            // Check for Avarin
+            if (username.toLowerCase() === "avarin") {
+                document.getElementById('dev-portal').classList.remove('hidden');
+            }
+
+            renderProjects();
+        }
+
+        function renderProjects() {
+            const grid = document.getElementById('project-grid');
+            grid.innerHTML = projects.map(p => `
+                <div class="project-card">
+                    <span class="badge">${p.status}</span>
+                    <h3>${p.name}</h3>
+                    <p style="color: var(--secondary); margin-top: 10px; font-size: 14px;">${p.desc}</p>
+                </div>
+            `).join('');
+        }
+
+        function logout() {
+            localStorage.removeItem(userKey);
+            location.reload();
+        }
+    </script>
+</body>
+</html>
