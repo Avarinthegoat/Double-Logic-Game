@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Double Logic Games | System</title>
+    <style>
+        :root {
+            --bg: #000000;
+            --panel: #0a0a0a;
+            --accent: #ffffff;
+            --border: #1a1a1a;
+            --secondary: #666666;
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--accent);
+            font-family: var(--font);
+            overflow-x: hidden;
+        }
+
+        /* --- AUTH WALL --- */
+        #auth-wall {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.8s cubic-bezier(0.8, 0, 0.2, 1);
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 420px;
+            padding: 50px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .text-logo-large {
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: #000;
+            border: 1px solid var(--border);
+            color: white;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus { border-color: var(--accent); }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            margin-top: 15px;
+            background: var(--accent);
+            color: black;
+            border: none;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn:hover { background: #ccc; letter-spacing: 4px; }
+
+        /* --- MAIN INTERFACE --- */
+        #main-app { opacity: 0; padding-top: 120px; transition: 1s ease; }
+
+        .navbar {
+            position: fixed;
+            top: 0; width: 100%;
+            padding: 30px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.95);
+            border-bottom: 1px solid var(--border);
+            z-index: 900;
+        }
+
+        .nav-brand { 
+            font-weight: 900; 
+            letter-spacing: 5px; 
+            font-size: 16px;
+            text-transform: uppercase;
+        }
+
+        section { max-width: 1100px; margin: 0 auto 100px; padding: 0 20px; }
+        h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 5px; color: var(--secondary); margin-bottom: 30px; }
+
+        /* --- CARDS & STATUS TAGS --- */
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            padding: 35px;
+            margin-bottom: 25px;
+        }
+
+        .status-badge {
+            font-size: 9px;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border: 1px solid var(--secondary);
+            font-weight: bold;
+        }
+
+        .active-tag { color: #00ff88; border-color: #00ff88; }
+        .finished-tag { color: #00ccff; border-color: #00ccff; }
+        .stopped-tag { color: #ffbb00; border-color: #ffbb00; }
+        .discontinued-tag { color: #ff4444; border-color: #ff4444; }
+        .pending-tag { color: #888; border-color: #888; }
+        .accepted-tag { color: #00ff88; border-color: #00ff88; font-weight: 900; }
+        .rejected-tag { color: #ff4444; border-color: #ff4444; }
+
+        .app-item {
+            border-bottom: 1px solid var(--border);
+            padding: 20px 0;
+        }
+
+        .hidden { display: none !important; }
+
+        .task-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: #000;
+            border: 1px solid var(--border);
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="auth-wall">
+        <div class="auth-card">
+            <div class="text-logo-large">Double Logic Games</div>
+            <div id="auth-form">
+                <input type="text" id="auth-user" placeholder="Username (Min 5 chars)">
+                <input type="password" id="auth-pass" placeholder="Password">
+                <button class="btn" onclick="handleAuth()">Enter Studio</button>
+                <p id="auth-error" style="color:red; font-size:12px; margin-top:10px;"></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-app">
+        <nav class="navbar">
+            <div class="nav-brand">Double Logic Games</div>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <span id="user-tag" style="font-size: 11px; color: var(--secondary); font-weight:800;"></span>
+                <button onclick="logout()" style="background:none; border:none; color:white; cursor:pointer; font-size:11px; font-weight:bold; letter-spacing:1px;">LOGOUT</button>
+            </div>
+        </nav>
+
+        <section id="dev-hub" class="hidden">
+            <h2>Developer Dashboard</h2>
+            <div class="card">
+                <h3>Game Progress Tracker</h3>
+                <div style="display:grid; grid-template-columns: 2fr 1fr auto; gap:10px; margin: 25px 0;">
+                    <input type="text" id="new-task" placeholder="Task Name..." style="margin:0">
+                    <select id="task-status-select" style="margin:0">
+                        <option value="Active">Active</option>
+                        <option value="Finished">Finished</option>
+                        <option value="Stopped">Stopped</option>
+                        <option value="Discontinued">Discontinued</option>
+                    </select>
+                    <button class="btn" style="margin:0; width:100px; padding:0;" onclick="addTask()">Add</button>
+                </div>
+                <div id="task-container"></div>
+            </div>
+
+            <div class="card">
+                <h3>Staff Recruitment Management</h3>
+                <div id="application-container" style="margin-top:20px;"></div>
+            </div>
+        </section>
+
+        <section id="user-dashboard">
+            <h2>Studio Operations</h2>
+            
+            <div class="card">
+                <h3>Your Membership Status</h3>
+                <p id="status-text" style="color:var(--secondary); margin-top:15px; font-size:14px;">No active applications found.</p>
+            </div>
+
+            <div class="card">
+                <h3>Join the Development Team</h3>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                    <input type="text" id="hire-discord" placeholder="Discord Tag">
+                    <input type="text" id="hire-roblox" placeholder="Roblox Profile Name">
+                </div>
+                <input type="text" id="hire-role" placeholder="Specialty (GFX, Scripting, Modeling, etc.)">
+                <textarea id="hire-reason" placeholder="Briefly describe your experience and why you want to join."></textarea>
+                <button class="btn" onclick="submitApplication()">Submit to Avarin</button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        let db = {
+            users: JSON.parse(localStorage.getItem('dlg_users')) || [],
+            currentUser: JSON.parse(localStorage.getItem('dlg_current')) || null,
+            tasks: JSON.parse(localStorage.getItem('dlg_tasks')) || [],
+            apps: JSON.parse(localStorage.getItem('dlg_apps')) || []
+        };
+
+        window.onload = () => {
+            if (db.currentUser) launchApp();
+        };
+
+        function handleAuth() {
+            const user = document.getElementById('auth-user').value.trim();
+            const pass = document.getElementById('auth-pass').value;
+            const err = document.getElementById('auth-error');
+
+            if (user.length < 5) {
+                err.innerText = "Minimum 5 characters required.";
+                return;
+            }
+
+            let existingUser = db.users.find(u => u.name.toLowerCase() === user.toLowerCase());
+
+            if (existingUser) {
+                if (existingUser.pass !== pass) {
+                    err.innerText = "Authentication failed: Wrong password.";
+                    return;
+                }
+                db.currentUser = existingUser;
+            } else {
+                let newUser = { name: user, pass: pass, role: (user.toLowerCase() === 'avarin' ? 'dev' : 'user') };
+                db.users.push(newUser);
+                db.currentUser = newUser;
+                localStorage.setItem('dlg_users', JSON.stringify(db.users));
+            }
+
+            localStorage.setItem('dlg_current', JSON.stringify(db.currentUser));
+            launchApp();
+        }
+
+        function launchApp() {
+            document.getElementById('auth-wall').style.transform = "translateY(-100%)";
+            document.getElementById('main-app').style.opacity = "1";
+            document.getElementById('user-tag').innerText = `ID: ${db.currentUser.name.toUpperCase()}`;
+
+            if (db.currentUser.name.toLowerCase() === 'avarin') {
+                document.getElementById('dev-hub').classList.remove('hidden');
+                renderDevTools();
+            }
+            renderUserStatus();
+        }
+
+        /* --- DEVELOPER TOOLS --- */
+        function renderDevTools() {
+            // Task Rendering
+            const taskBox = document.getElementById('task-container');
+            taskBox.innerHTML = db.tasks.map((t, i) => `
+                <div class="task-row">
+                    <div>
+                        <span class="status-badge ${t.status.toLowerCase()}-tag">${t.status}</span>
+                        <span style="margin-left:15px; font-weight:800; font-size:14px;">${t.text}</span>
+                    </div>
+                    <button onclick="deleteTask(${i})" style="background:none; border:none; color:#444; cursor:pointer; font-weight:bold;">DELETE</button>
+                </div>
+            `).join('');
+
+            // Application Management
+            const appBox = document.getElementById('application-container');
+            if (db.apps.length === 0) {
+                appBox.innerHTML = '<p style="color:var(--secondary); font-size:13px;">No pending staff requests.</p>';
+            } else {
+                appBox.innerHTML = db.apps.map((a, i) => `
+                    <div class="app-item">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <span style="font-weight:900; letter-spacing:1px;">USER: ${a.user}</span>
+                            <span class="status-badge ${a.status.toLowerCase()}-tag">${a.status}</span>
+                        </div>
+                        <div style="font-size:12px; color:var(--secondary); line-height:1.6;">
+                            DISCORD: ${a.discord} <br>
+                            ROBLOX: ${a.roblox} <br>
+                            ROLE: ${a.role}
+                        </div>
+                        <div style="font-size:13px; margin: 15px 0; border-left: 2px solid #222; padding-left:15px; color:#ccc;">"${a.reason}"</div>
+                        <div style="display:flex; gap:10px;">
+                            <button onclick="updateAppStatus(${i}, 'Accepted')" class="btn" style="background:#00ff88; font-size:9px; height:35px; margin:0;">Approve</button>
+                            <button onclick="updateAppStatus(${i}, 'Rejected')" class="btn" style="background:#ff4444; font-size:9px; height:35px; margin:0;">Deny</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function addTask() {
+            const text = document.getElementById('new-task').value;
+            const status = document.getElementById('task-status-select').value;
+            if (!text) return;
+            db.tasks.push({ text, status });
+            saveTasks();
+            document.getElementById('new-task').value = "";
+        }
+
+        function deleteTask(i) {
+            db.tasks.splice(i, 1);
+            saveTasks();
+        }
+
+        function saveTasks() {
+            localStorage.setItem('dlg_tasks', JSON.stringify(db.tasks));
+            renderDevTools();
+        }
+
+        /* --- HIRING LOGIC --- */
+        function submitApplication() {
+            const discord = document.getElementById('hire-discord').value;
+            const roblox = document.getElementById('hire-roblox').value;
+            const role = document.getElementById('hire-role').value;
+            const reason = document.getElementById('hire-reason').value;
+
+            if (!discord || !roblox || !role) return alert("Error: Please provide Discord, Roblox, and Role details.");
+
+            const newApp = {
+                user: db.currentUser.name,
+                discord, roblox, role, reason,
+                status: 'Pending'
+            };
+
+            // Replace existing if user reapplies
+            db.apps = db.apps.filter(a => a.user !== db.currentUser.name);
+            db.apps.push(newApp);
+            localStorage.setItem('dlg_apps', JSON.stringify(db.apps));
+            
+            alert("Success: Your application is now in the review queue.");
+            renderUserStatus();
+            if(db.currentUser.name.toLowerCase() === 'avarin') renderDevTools();
+        }
+
+        function updateAppStatus(index, newStatus) {
+            db.apps[index].status = newStatus;
+            localStorage.setItem('dlg_apps', JSON.stringify(db.apps));
+            renderDevTools();
+        }
+
+        function renderUserStatus() {
+            const statusText = document.getElementById('status-text');
+            const myApp = db.apps.find(a => a.user === db.currentUser.name);
+            
+            if (!myApp) {
+                statusText.innerText = "No active application found. Use the form below to apply.";
+            } else {
+                statusText.innerHTML = `Current Status: <span class="status-badge ${myApp.status.toLowerCase()}-tag" style="margin-left:10px;">${myApp.status}</span>`;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('dlg_current');
+            location.reload();
+        }
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Double Logic Games | System</title>
+    <style>
+        :root {
+            --bg: #000000;
+            --panel: #0a0a0a;
+            --accent: #ffffff;
+            --border: #1a1a1a;
+            --secondary: #666666;
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--accent);
+            font-family: var(--font);
+            overflow-x: hidden;
+        }
+
+        /* --- AUTH WALL --- */
+        #auth-wall {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.8s cubic-bezier(0.8, 0, 0.2, 1);
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 420px;
+            padding: 50px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .text-logo-large {
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: #000;
+            border: 1px solid var(--border);
+            color: white;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus { border-color: var(--accent); }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            margin-top: 15px;
+            background: var(--accent);
+            color: black;
+            border: none;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn:hover { background: #ccc; letter-spacing: 4px; }
+
+        /* --- MAIN INTERFACE --- */
+        #main-app { opacity: 0; padding-top: 120px; transition: 1s ease; }
+
+        .navbar {
+            position: fixed;
+            top: 0; width: 100%;
+            padding: 30px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.95);
+            border-bottom: 1px solid var(--border);
+            z-index: 900;
+        }
+
+        .nav-brand { 
+            font-weight: 900; 
+            letter-spacing: 5px; 
+            font-size: 16px;
+            text-transform: uppercase;
+        }
+
+        section { max-width: 1100px; margin: 0 auto 100px; padding: 0 20px; }
+        h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 5px; color: var(--secondary); margin-bottom: 30px; }
+
+        /* --- CARDS & STATUS TAGS --- */
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            padding: 35px;
+            margin-bottom: 25px;
+        }
+
+        .status-badge {
+            font-size: 9px;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border: 1px solid var(--secondary);
+            font-weight: bold;
+        }
+
+        .active-tag { color: #00ff88; border-color: #00ff88; }
+        .finished-tag { color: #00ccff; border-color: #00ccff; }
+        .stopped-tag { color: #ffbb00; border-color: #ffbb00; }
+        .discontinued-tag { color: #ff4444; border-color: #ff4444; }
+        .pending-tag { color: #888; border-color: #888; }
+        .accepted-tag { color: #00ff88; border-color: #00ff88; font-weight: 900; }
+        .rejected-tag { color: #ff4444; border-color: #ff4444; }
+
+        .app-item {
+            border-bottom: 1px solid var(--border);
+            padding: 20px 0;
+        }
+
+        .hidden { display: none !important; }
+
+        .task-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: #000;
+            border: 1px solid var(--border);
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="auth-wall">
+        <div class="auth-card">
+            <div class="text-logo-large">Double Logic Games</div>
+            <div id="auth-form">
+                <input type="text" id="auth-user" placeholder="Username (Min 5 chars)">
+                <input type="password" id="auth-pass" placeholder="Password">
+                <button class="btn" onclick="handleAuth()">Enter Studio</button>
+                <p id="auth-error" style="color:red; font-size:12px; margin-top:10px;"></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-app">
+        <nav class="navbar">
+            <div class="nav-brand">Double Logic Games</div>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <span id="user-tag" style="font-size: 11px; color: var(--secondary); font-weight:800;"></span>
+                <button onclick="logout()" style="background:none; border:none; color:white; cursor:pointer; font-size:11px; font-weight:bold; letter-spacing:1px;">LOGOUT</button>
+            </div>
+        </nav>
+
+        <section id="dev-hub" class="hidden">
+            <h2>Developer Dashboard</h2>
+            <div class="card">
+                <h3>Game Progress Tracker</h3>
+                <div style="display:grid; grid-template-columns: 2fr 1fr auto; gap:10px; margin: 25px 0;">
+                    <input type="text" id="new-task" placeholder="Task Name..." style="margin:0">
+                    <select id="task-status-select" style="margin:0">
+                        <option value="Active">Active</option>
+                        <option value="Finished">Finished</option>
+                        <option value="Stopped">Stopped</option>
+                        <option value="Discontinued">Discontinued</option>
+                    </select>
+                    <button class="btn" style="margin:0; width:100px; padding:0;" onclick="addTask()">Add</button>
+                </div>
+                <div id="task-container"></div>
+            </div>
+
+            <div class="card">
+                <h3>Staff Recruitment Management</h3>
+                <div id="application-container" style="margin-top:20px;"></div>
+            </div>
+        </section>
+
+        <section id="user-dashboard">
+            <h2>Studio Operations</h2>
+            
+            <div class="card">
+                <h3>Your Membership Status</h3>
+                <p id="status-text" style="color:var(--secondary); margin-top:15px; font-size:14px;">No active applications found.</p>
+            </div>
+
+            <div class="card">
+                <h3>Join the Development Team</h3>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                    <input type="text" id="hire-discord" placeholder="Discord Tag">
+                    <input type="text" id="hire-roblox" placeholder="Roblox Profile Name">
+                </div>
+                <input type="text" id="hire-role" placeholder="Specialty (GFX, Scripting, Modeling, etc.)">
+                <textarea id="hire-reason" placeholder="Briefly describe your experience and why you want to join."></textarea>
+                <button class="btn" onclick="submitApplication()">Submit to Avarin</button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        let db = {
+            users: JSON.parse(localStorage.getItem('dlg_users')) || [],
+            currentUser: JSON.parse(localStorage.getItem('dlg_current')) || null,
+            tasks: JSON.parse(localStorage.getItem('dlg_tasks')) || [],
+            apps: JSON.parse(localStorage.getItem('dlg_apps')) || []
+        };
+
+        window.onload = () => {
+            if (db.currentUser) launchApp();
+        };
+
+        function handleAuth() {
+            const user = document.getElementById('auth-user').value.trim();
+            const pass = document.getElementById('auth-pass').value;
+            const err = document.getElementById('auth-error');
+
+            if (user.length < 5) {
+                err.innerText = "Minimum 5 characters required.";
+                return;
+            }
+
+            let existingUser = db.users.find(u => u.name.toLowerCase() === user.toLowerCase());
+
+            if (existingUser) {
+                if (existingUser.pass !== pass) {
+                    err.innerText = "Authentication failed: Wrong password.";
+                    return;
+                }
+                db.currentUser = existingUser;
+            } else {
+                let newUser = { name: user, pass: pass, role: (user.toLowerCase() === 'avarin' ? 'dev' : 'user') };
+                db.users.push(newUser);
+                db.currentUser = newUser;
+                localStorage.setItem('dlg_users', JSON.stringify(db.users));
+            }
+
+            localStorage.setItem('dlg_current', JSON.stringify(db.currentUser));
+            launchApp();
+        }
+
+        function launchApp() {
+            document.getElementById('auth-wall').style.transform = "translateY(-100%)";
+            document.getElementById('main-app').style.opacity = "1";
+            document.getElementById('user-tag').innerText = `ID: ${db.currentUser.name.toUpperCase()}`;
+
+            if (db.currentUser.name.toLowerCase() === 'avarin') {
+                document.getElementById('dev-hub').classList.remove('hidden');
+                renderDevTools();
+            }
+            renderUserStatus();
+        }
+
+        /* --- DEVELOPER TOOLS --- */
+        function renderDevTools() {
+            // Task Rendering
+            const taskBox = document.getElementById('task-container');
+            taskBox.innerHTML = db.tasks.map((t, i) => `
+                <div class="task-row">
+                    <div>
+                        <span class="status-badge ${t.status.toLowerCase()}-tag">${t.status}</span>
+                        <span style="margin-left:15px; font-weight:800; font-size:14px;">${t.text}</span>
+                    </div>
+                    <button onclick="deleteTask(${i})" style="background:none; border:none; color:#444; cursor:pointer; font-weight:bold;">DELETE</button>
+                </div>
+            `).join('');
+
+            // Application Management
+            const appBox = document.getElementById('application-container');
+            if (db.apps.length === 0) {
+                appBox.innerHTML = '<p style="color:var(--secondary); font-size:13px;">No pending staff requests.</p>';
+            } else {
+                appBox.innerHTML = db.apps.map((a, i) => `
+                    <div class="app-item">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <span style="font-weight:900; letter-spacing:1px;">USER: ${a.user}</span>
+                            <span class="status-badge ${a.status.toLowerCase()}-tag">${a.status}</span>
+                        </div>
+                        <div style="font-size:12px; color:var(--secondary); line-height:1.6;">
+                            DISCORD: ${a.discord} <br>
+                            ROBLOX: ${a.roblox} <br>
+                            ROLE: ${a.role}
+                        </div>
+                        <div style="font-size:13px; margin: 15px 0; border-left: 2px solid #222; padding-left:15px; color:#ccc;">"${a.reason}"</div>
+                        <div style="display:flex; gap:10px;">
+                            <button onclick="updateAppStatus(${i}, 'Accepted')" class="btn" style="background:#00ff88; font-size:9px; height:35px; margin:0;">Approve</button>
+                            <button onclick="updateAppStatus(${i}, 'Rejected')" class="btn" style="background:#ff4444; font-size:9px; height:35px; margin:0;">Deny</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function addTask() {
+            const text = document.getElementById('new-task').value;
+            const status = document.getElementById('task-status-select').value;
+            if (!text) return;
+            db.tasks.push({ text, status });
+            saveTasks();
+            document.getElementById('new-task').value = "";
+        }
+
+        function deleteTask(i) {
+            db.tasks.splice(i, 1);
+            saveTasks();
+        }
+
+        function saveTasks() {
+            localStorage.setItem('dlg_tasks', JSON.stringify(db.tasks));
+            renderDevTools();
+        }
+
+        /* --- HIRING LOGIC --- */
+        function submitApplication() {
+            const discord = document.getElementById('hire-discord').value;
+            const roblox = document.getElementById('hire-roblox').value;
+            const role = document.getElementById('hire-role').value;
+            const reason = document.getElementById('hire-reason').value;
+
+            if (!discord || !roblox || !role) return alert("Error: Please provide Discord, Roblox, and Role details.");
+
+            const newApp = {
+                user: db.currentUser.name,
+                discord, roblox, role, reason,
+                status: 'Pending'
+            };
+
+            // Replace existing if user reapplies
+            db.apps = db.apps.filter(a => a.user !== db.currentUser.name);
+            db.apps.push(newApp);
+            localStorage.setItem('dlg_apps', JSON.stringify(db.apps));
+            
+            alert("Success: Your application is now in the review queue.");
+            renderUserStatus();
+            if(db.currentUser.name.toLowerCase() === 'avarin') renderDevTools();
+        }
+
+        function updateAppStatus(index, newStatus) {
+            db.apps[index].status = newStatus;
+            localStorage.setItem('dlg_apps', JSON.stringify(db.apps));
+            renderDevTools();
+        }
+
+        function renderUserStatus() {
+            const statusText = document.getElementById('status-text');
+            const myApp = db.apps.find(a => a.user === db.currentUser.name);
+            
+            if (!myApp) {
+                statusText.innerText = "No active application found. Use the form below to apply.";
+            } else {
+                statusText.innerHTML = `Current Status: <span class="status-badge ${myApp.status.toLowerCase()}-tag" style="margin-left:10px;">${myApp.status}</span>`;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('dlg_current');
+            location.reload();
+        }
+    </script>
+</body>
+</html>
